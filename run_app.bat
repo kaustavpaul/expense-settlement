@@ -1,0 +1,9 @@
+@echo off
+echo Starting Expense Settlement App...
+echo.
+echo Activating virtual environment...
+call venv\Scripts\activate.bat
+echo.
+echo Starting the app...
+streamlit run app.py
+pause 
