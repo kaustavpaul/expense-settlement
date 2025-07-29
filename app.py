@@ -232,11 +232,13 @@ def display_sidebar():
         
         # Help Section
         with st.expander("❓ How to Use This App"):
+            import os
+            help_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "HELP.md")
             try:
-                with open("HELP.md", "r", encoding="utf-8") as f:
+                with open(help_path, "r", encoding="utf-8") as f:
                     st.markdown(f.read(), unsafe_allow_html=True)
             except FileNotFoundError:
-                st.warning("HELP.md file not found.")
+                st.warning(f"HELP.md file not found at {help_path}.")
             except Exception as e:
                 st.error(f"Error reading help file: {e}")
 
