@@ -140,7 +140,23 @@ This app is designed to be portable across different machines and operating syst
 - **Consistent Experience**: Same functionality everywhere
 - **Easy Transfer**: Copy the project folder (excluding `venv/`) to any machine
 
-For detailed portability information, see `PORTABILITY.md`.
+## ☁️ Cloud Setup (Optional)
+
+To enable cloud features (Sharing, Persistence, and Backups):
+
+1.  **Create a Google Service Account**:
+    -   Go to Google Cloud Console > IAM & Admin > Service Accounts
+    -   Create a new service account and download the JSON key.
+    -   Enable **Google Sheets API** and **Google Drive API** for your project.
+
+2.  **Create the Database Sheet**:
+    -   Go to Google Sheets and create a new blank spreadsheet.
+    -   Name it exactly: **`Expense Settlement DB`**
+    -   **Share** this sheet with your Service Account email (found in the JSON key) as an **Editor**.
+
+3.  **Configure Secrets**:
+    -   **Local**: Save your JSON key as `kaustavsampleproject-2dda07854172.json` in the project root.
+    -   **Streamlit Cloud**: Paste the JSON content into the `GOOGLE_SERVICE_ACCOUNT` secret.
 
 ## 🤝 Contributing
 

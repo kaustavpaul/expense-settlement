@@ -1,7 +1,6 @@
 import uuid
 from .storage_github import get_github_repo, save_to_github, load_from_github, is_github_connected, save_to_local, load_from_local
 from .storage_sheets import save_session_to_sheet, load_session_from_sheet, list_sessions_from_sheet, is_sheets_connected
-# Deprecated: from .storage_drive import get_drive_service, save_to_drive, load_from_drive, is_drive_connected
 
 def create_session(data):
     """Creates a new session and saves it to Cloud (Sheets) and GitHub."""
