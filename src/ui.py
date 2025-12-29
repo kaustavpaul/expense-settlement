@@ -248,12 +248,16 @@ def display_expense_log():
                 # We could consolidate these for the log
                 def aggregate_participants(row):
                     parts = []
-                    # Check list column first
-                    if 'Participants' in row and row['Participants']:
-                        parts.append(str(row['Participants']))
+                    # Check list column first: must be a list and not empty
+                    if 'Participants' in row and isinstance(row['Participants'], list) and row['Participants']:
+                        parts.append(", ".join(row['Participants']))
+                    elif 'Participants' in row and isinstance(row['Participants'], str) and row['Participants'].strip():
+                         # Handle case where it might be a string already (rare but possible in mixed edits)
+                         parts.append(row['Participants'])
+
                     # Check legacy columns
                     for col in p_cols:
-                        if pd.notna(row[col]):
+                        if pd.notna(row[col]) and str(row[col]).strip():
                             mem_col = col.replace("Name", "Members")
                             mem_count = row.get(mem_col, 1)
                             parts.append(f"{row[col]} (x{int(mem_count)})" if mem_count != 1 else row[col])
