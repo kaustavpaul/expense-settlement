@@ -5,17 +5,9 @@ from .utils import parse_names, to_excel, create_empty_dataframe
 from .logic import calculate_settlement, generate_summary
 from .storage import create_session, update_session, get_storage_status
 
-def display_sidebar():
-    """Renders the sidebar, which is the main control hub for the app."""
-    with st.sidebar:
-        payer_list = parse_names(st.session_state.payer_names_input)
-        participant_list = parse_names(st.session_state.participant_names_input)
-        
-        st.header("👥 Configured People")
-        st.markdown(f"**Payers:** _{', '.join(payer_list) if payer_list else 'None'}_")
-        st.markdown(f"**Participants:** _{', '.join(participant_list) if participant_list else 'None'}_")
-
-        st.divider()
+def display_cloud_controls():
+    """Renders the cloud session controls at the top of the main page."""
+    with st.container():
         st.header("🔗 Cloud Session")
         
         # Unified Storage Status Indicator
@@ -27,33 +19,47 @@ def display_sidebar():
 
         current_id = st.session_state.get('db_session_id')
         if current_id:
-            st.success(f"Session Active")
-            st.code(current_id, language=None)
-            st.info("Copy the URL from your browser to share.")
-            
-            if st.button("💾 Save Changes to Cloud", type="primary", use_container_width=True):
-                data_to_save = {
-                    'payer_names_input': st.session_state.payer_names_input,
-                    'participant_names_input': st.session_state.participant_names_input,
-                    'num_participants': st.session_state.num_participants,
-                    'expenses_data': st.session_state.expenses_df.to_dict('records')
-                }
-                update_session(current_id, data_to_save)
-                st.toast("Session updated!", icon="☁️")
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                st.success(f"Session Active: `{current_id}`")
+                st.caption("Copy the URL from your browser to share.")
+            with col2:
+                if st.button("💾 Save to Cloud", type="primary", use_container_width=True):
+                    data_to_save = {
+                        'payer_names_input': st.session_state.payer_names_input,
+                        'participant_names_input': st.session_state.participant_names_input,
+                        'num_participants': st.session_state.num_participants,
+                        'expenses_data': st.session_state.expenses_df.to_dict('records')
+                    }
+                    update_session(current_id, data_to_save)
+                    st.toast("Session updated!", icon="☁️")
         else:
-            st.info("Create a unique link to share this report.")
-            if st.button("🚀 Create Shareable Link", use_container_width=True):
-                data_to_save = {
-                    'payer_names_input': st.session_state.payer_names_input,
-                    'participant_names_input': st.session_state.participant_names_input,
-                    'num_participants': st.session_state.num_participants,
-                    'expenses_data': st.session_state.expenses_df.to_dict('records')
-                }
-                new_id = create_session(data_to_save)
-                st.session_state.db_session_id = new_id
-                st.query_params['session'] = new_id
-                st.toast("Session created! URL updated.", icon="🔗")
-                st.rerun()
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                st.info("Create a unique link to share this report with friends.")
+            with col2:
+                if st.button("🚀 Create Link", use_container_width=True):
+                    data_to_save = {
+                        'payer_names_input': st.session_state.payer_names_input,
+                        'participant_names_input': st.session_state.participant_names_input,
+                        'num_participants': st.session_state.num_participants,
+                        'expenses_data': st.session_state.expenses_df.to_dict('records')
+                    }
+                    new_id = create_session(data_to_save)
+                    st.session_state.db_session_id = new_id
+                    st.query_params['session'] = new_id
+                    st.toast("Session created! URL updated.", icon="🔗")
+                    st.rerun()
+
+def display_sidebar():
+    """Renders the sidebar, which is the main control hub for the app."""
+    with st.sidebar:
+        payer_list = parse_names(st.session_state.payer_names_input)
+        participant_list = parse_names(st.session_state.participant_names_input)
+        
+        st.header("👥 Configured People")
+        st.markdown(f"**Payers:** _{', '.join(payer_list) if payer_list else 'None'}_")
+        st.markdown(f"**Participants:** _{', '.join(participant_list) if participant_list else 'None'}_")
 
         st.divider()
         st.header("💾 Local Backup")

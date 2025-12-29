@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from src.utils import create_empty_dataframe
-from src.ui import display_sidebar, display_expense_editor, display_results_and_summary, display_people_configuration, display_expense_log
+from src.ui import display_sidebar, display_expense_editor, display_results_and_summary, display_people_configuration, display_expense_log, display_cloud_controls
 from src.storage import load_session
 
 def initialize_state():
@@ -51,6 +51,10 @@ def main():
 
     try:
         initialize_state()
+        
+        # --- Main Page Layout ---
+        display_cloud_controls()
+        st.title("💸 Expense Settlement App")
         
         # Sidebar & Configuration
         payer_list, participant_list = display_sidebar()
