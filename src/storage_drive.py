@@ -66,6 +66,34 @@ def find_file(service, name):
         
     return None
 
+def list_sessions(service):
+    """Lists all available session files (JSON), sorted by newest first."""
+    try:
+        # Search query: JSON files, not trashed
+        query = "mimeType = 'application/json' and trashed = false"
+        
+        # If folder is configured, prefer searching there, but fall back to global if empty?
+        # Actually, let's keep it simple: Search globally for files that look like UUIDs or matching our pattern?
+        # For now, searching all JSONs might be too broad. Let's filter by ones that have valid session IDs as names.
+        # But names are just UUIDs usually.
+        
+        # Let's search inside the folder if configured, else global.
+        if DRIVE_FOLDER_ID:
+            query += f" and '{DRIVE_FOLDER_ID}' in parents"
+            
+        results = service.files().list(
+            q=query, 
+            pageSize=20, 
+            fields="files(id, name, modifiedTime)", 
+            orderBy="modifiedTime desc"
+        ).execute()
+        
+        files = results.get('files', [])
+        return files
+    except Exception as e:
+        print(f"Error listing sessions: {e}")
+        return []
+
 def save_to_drive(service, session_id, data):
     """Saves session JSON to Google Drive."""
     filename = f"{session_id}.json"

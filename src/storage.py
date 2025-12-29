@@ -93,3 +93,21 @@ def get_storage_status():
         info = " (Local Cert Found)"
         
     return f"Active Cloud: {', '.join(providers)}{info}"
+
+def get_available_sessions():
+    """Returns a list of available sessions from Cloud Storage."""
+    sessions = []
+    if is_drive_connected():
+        service = get_drive_service()
+        if service:
+            # We import here to avoid circular dependencies if any
+            from .storage_drive import list_sessions
+            files = list_sessions(service)
+            for f in files:
+                # Format: "2023-10-27 (UUID...)"
+                sessions.append({
+                    'id': f['name'].replace('.json', ''), # Assuming name is ID.json
+                    'display': f"{f['modifiedTime'][:10]} - {f['name'].replace('.json', '')}",
+                    'file_id': f['id']
+                })
+    return sessions

@@ -31,14 +31,15 @@ def display_cloud_controls():
                         'num_participants': st.session_state.num_participants,
                         'expenses_data': st.session_state.expenses_df.to_dict('records')
                     }
-                    update_session(current_id, data_to_save)
+                    # Result is now the sheet URL if successful (or True/False) from backup
+                    res = update_session(current_id, data_to_save) 
                     st.toast("Session updated!", icon="☁️")
         else:
             col1, col2 = st.columns([3, 1])
             with col1:
-                st.info("Create a unique link to share this report with friends.")
+                st.info("Start a new session or load an existing one.")
             with col2:
-                if st.button("🚀 Create Link", use_container_width=True):
+                if st.button("🚀 Create New", use_container_width=True):
                     data_to_save = {
                         'payer_names_input': st.session_state.payer_names_input,
                         'participant_names_input': st.session_state.participant_names_input,
@@ -50,6 +51,37 @@ def display_cloud_controls():
                     st.query_params['session'] = new_id
                     st.toast("Session created! URL updated.", icon="🔗")
                     st.rerun()
+
+        # --- Session Lister & Sheet Access ---
+        st.divider()
+        lc1, lc2 = st.columns(2)
+        with lc1:
+            # Load Previous Session
+            from .storage import get_available_sessions
+            sessions = get_available_sessions()
+            if sessions:
+                options = {s['display']: s['id'] for s in sessions}
+                selected_display = st.selectbox("📂 Load Previous Session", options=list(options.keys()), index=None, placeholder="Select a session...")
+                if selected_display:
+                    selected_id = options[selected_display]
+                    if selected_id != current_id:
+                        st.query_params['session'] = selected_id
+                        st.session_state.db_session_id = selected_id
+                        st.rerun()
+            else:
+                 st.caption("No previous cloud sessions found.")
+
+        with lc2:
+            # Link to Sheet
+            from .storage import is_sheets_connected
+            # We need the sheet URL. Since we don't store it in state, we can't deep link easily 
+            # unless we fetched it. But we can link to the general Sheets home or try to find it?
+            # Actually, `sync_to_sheet` returns it, but we only call it on save.
+            # Let's just provide a generic link or instruction for now, OR better:
+            # The user just wants to see it.
+            if is_sheets_connected():
+                # Generic link to Google Sheets
+                st.link_button("📄 Open Google Sheets Log", "https://docs.google.com/spreadsheets/u/0/", help="Open Google Sheets to find 'Expense Settlement - Cloud Backups'")
 
 def display_sidebar():
     """Renders the sidebar, which is the main control hub for the app."""
@@ -102,6 +134,7 @@ def display_sidebar():
             if st.button("Confirm Reset", type="primary"):
                 for key in list(st.session_state.keys()):
                     del st.session_state[key]
+                st.query_params.clear() # CRITICAL: Remove ?session=ID so it doesn't reload!
                 st.toast("App has been reset!", icon="🎉")
                 st.rerun()
         
