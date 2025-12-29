@@ -44,7 +44,22 @@ def sync_to_sheet(session_id, data):
             # Add header
             worksheet = sh.get_worksheet(0)
             worksheet.append_row(["Session ID", "Payer", "Participants", "Total Amount", "Last Updated"])
-        
+            
+            # SHARE IT!
+            # Try to share with the user's email if configured
+            user_email = None
+            try:
+                user_email = st.secrets.get("USER_EMAIL")
+            except:
+                pass
+            
+            if user_email:
+                try:
+                    sh.share(user_email, perm_type='user', role='writer')
+                    print(f"Shared sheet with {user_email}")
+                except Exception as share_err:
+                    print(f"Error sharing sheet: {share_err}")
+
         worksheet = sh.get_worksheet(0)
         
         # 2. Format row data
@@ -72,7 +87,7 @@ def sync_to_sheet(session_id, data):
         else:
             worksheet.append_row(row_data)
             
-        return True
+        return sh.url
     except Exception as e:
         print(f"Google Sheets Sync Error: {e}")
         return False
