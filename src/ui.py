@@ -197,6 +197,13 @@ def display_expense_editor(payer_list, participant_list):
         for col in required_cols:
             if col not in current_df.columns:
                 current_df[col] = None
+
+        # Fix: Ensure 'Participants' column is object type containing lists, not NaNs/Floats
+        if 'Participants' not in current_df.columns:
+             current_df['Participants'] = [[] for _ in range(len(current_df))]
+        else:
+             # Fill NaNs with empty lists and ensure existing are lists
+             current_df['Participants'] = current_df['Participants'].apply(lambda x: x if isinstance(x, list) else [])
         
         # Configure columns for editor
         column_config = {
@@ -283,8 +290,31 @@ def display_results_and_summary(all_people):
     cleaned_df = st.session_state.expenses_df.dropna(subset=['Payer', 'Amount'], how='any').copy()
     cleaned_df = cleaned_df[cleaned_df['Amount'] > 0]
     
-    if not cleaned_df.empty and all_people:
-        summary_df = generate_summary(cleaned_df, all_people, st.session_state.num_participants)
+    if not cleaned_df.empty:
+        # Robustly determine all involved people (Config + Actual usage)
+        actual_people = set(all_people)
+        
+        # Add Payers
+        if 'Payer' in cleaned_df.columns:
+             actual_people.update(cleaned_df['Payer'].dropna().unique())
+        
+        # Add Participants (List column)
+        if 'Participants' in cleaned_df.columns:
+            for sublist in cleaned_df['Participants'].dropna():
+                if isinstance(sublist, list):
+                    actual_people.update(sublist)
+                elif isinstance(sublist, str):
+                    actual_people.update([sublist])
+        
+        # Add Participants (Legacy columns)
+        p_cols = [c for c in cleaned_df.columns if "Participant" in c and "Name" in c]
+        for col in p_cols:
+            actual_people.update(cleaned_df[col].dropna().unique())
+            
+        final_people = sorted(list(actual_people))
+        
+        if final_people:
+            summary_df = generate_summary(cleaned_df, final_people, st.session_state.num_participants)
         
         # Add total row check
         summary_df['Check'] = summary_df.sum(axis=1)
