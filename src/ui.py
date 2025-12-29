@@ -31,9 +31,12 @@ def display_cloud_controls():
                         'num_participants': st.session_state.num_participants,
                         'expenses_data': st.session_state.expenses_df.to_dict('records')
                     }
-                    # Result is now the sheet URL if successful (or True/False) from backup
                     res = update_session(current_id, data_to_save) 
-                    st.toast("Session updated!", icon="☁️")
+                    if isinstance(res, str) and res.startswith("http"):
+                        st.toast("Saved to 'Expense Settlement DB'!", icon="✅")
+                        st.success(f"[Open Database Sheet]({res})")
+                    else:
+                        st.toast("Session updated!", icon="☁️")
         else:
             col1, col2 = st.columns([3, 1])
             with col1:
