@@ -227,6 +227,49 @@ def display_expense_editor(payer_list, participant_list):
         if not edited_df.equals(current_df):
             st.session_state.expenses_df = edited_df
 
+def display_expense_log():
+    """Renders a collapsible log of all entered expenses."""
+    with st.expander("📋 Expense Log", expanded=False):
+        df = st.session_state.expenses_df
+        if not df.empty:
+            # Format the display dataframe for readability
+            display_df = df.copy()
+            
+            # 1. Handle List-based Participants (from Grid)
+            if 'Participants' in display_df.columns:
+                display_df['Participants'] = display_df['Participants'].apply(
+                    lambda x: ", ".join(x) if isinstance(x, list) else x
+                )
+            
+            # 2. Handle Legacy Participant columns (from Form)
+            # Find all Participant N Name columns
+            p_cols = [c for c in display_df.columns if "Participant" in c and "Name" in c]
+            if p_cols:
+                # We could consolidate these for the log
+                def aggregate_participants(row):
+                    parts = []
+                    # Check list column first
+                    if 'Participants' in row and row['Participants']:
+                        parts.append(str(row['Participants']))
+                    # Check legacy columns
+                    for col in p_cols:
+                        if pd.notna(row[col]):
+                            mem_col = col.replace("Name", "Members")
+                            mem_count = row.get(mem_col, 1)
+                            parts.append(f"{row[col]} (x{int(mem_count)})" if mem_count != 1 else row[col])
+                    return ", ".join(parts)
+
+                display_df['All Participants'] = display_df.apply(aggregate_participants, axis=1)
+                # Show only core columns for the log
+                core_cols = ["Expense Type", "Payer", "Amount", "All Participants"]
+                # Keep only those that exist
+                final_cols = [c for c in core_cols if c in display_df.columns]
+                st.dataframe(display_df[final_cols], use_container_width=True, hide_index=True)
+            else:
+                st.dataframe(display_df, use_container_width=True, hide_index=True)
+        else:
+            st.info("No expenses entered yet.")
+
 def display_results_and_summary(all_people):
     """Renders all the data tables, export buttons, and finalization controls."""
     is_finalized = st.session_state.report_finalized

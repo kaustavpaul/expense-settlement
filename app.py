@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from src.utils import create_empty_dataframe
-from src.ui import display_sidebar, display_expense_editor, display_results_and_summary, display_people_configuration
+from src.ui import display_sidebar, display_expense_editor, display_results_and_summary, display_people_configuration, display_expense_log
 from src.storage import load_session
 
 def initialize_state():
@@ -59,6 +59,7 @@ def main():
         if not st.session_state.report_finalized:
             display_people_configuration()
             display_expense_editor(payer_list, participant_list)
+            display_expense_log()
         else:
             st.info("Report is finalized. Editing is disabled.")
             st.dataframe(st.session_state.expenses_df)
