@@ -1,3 +1,10 @@
 streamlit>=1.28.0,<2.0.0
 pandas>=1.5.0,<3.0.0
-openpyxl>=3.0.0,<4.0.0 
+openpyxl>=3.0.0,<4.0.0
+PyGithub
+google-auth
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
+gspread
+oauth2client
