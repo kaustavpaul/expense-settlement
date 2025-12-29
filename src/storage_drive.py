@@ -42,17 +42,28 @@ def get_drive_service():
 
 def find_file(service, name):
     """Finds a file by name. Returns file ID or None."""
-    query = f"name = '{name}' and trashed = false"
+    # 1. Try finding in the specific folder if configured
     if DRIVE_FOLDER_ID:
-        query += f" and '{DRIVE_FOLDER_ID}' in parents"
-    
+        query = f"name = '{name}' and trashed = false and '{DRIVE_FOLDER_ID}' in parents"
+        try:
+            results = service.files().list(q=query, fields="files(id, name)").execute()
+            files = results.get('files', [])
+            if files:
+                return files[0]['id']
+        except Exception as e:
+            print(f"Error finding file {name} in folder: {e}")
+
+    # 2. Fallback: Find anywhere (if not found in folder or no folder configured)
+    # This helps if the file was created in 'root' locally but we are now looking on Cloud with a folder ID.
+    query = f"name = '{name}' and trashed = false"
     try:
         results = service.files().list(q=query, fields="files(id, name)").execute()
         files = results.get('files', [])
         if files:
             return files[0]['id']
     except Exception as e:
-        print(f"Error finding file {name}: {e}")
+        print(f"Error finding file {name} globally: {e}")
+        
     return None
 
 def save_to_drive(service, session_id, data):
